@@ -1,0 +1,41 @@
+name: build tcc
+
+on:
+  push:
+    branches: [ "mob" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      
+    - name: install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc tcc nasm make python3
+
+    - name: build profanOS disk
+      run: |
+        git clone https://github.com/elydre/profanOS.git
+        cd profanOS
+        make disk
+        cd ..
+      
+    - name: build tcc
+      run: |
+        python3 build.py profanOS
+        sh makelib.sh
+
+    - name: Release to GitHub
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        title: "tcc for profanOS"
+        automatic_release_tag: latest
+        repo_token: "${{ secrets.GIT_TOKEN }}"
+        prerelease: false
+        files: |
+          tcc.elf
+          libtcc.a
