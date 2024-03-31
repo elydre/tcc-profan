@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <fcntl.h>
 #ifndef _WIN32
 #include <unistd.h>
-#include <errno.h>
 #else
 #include <windows.h>
 #include <io.h>
@@ -48,32 +46,7 @@ typedef struct tcov_file {
 
 static FILE *open_tcov_file (char *cov_filename)
 {
-    int fd;
-#ifndef _WIN32
-    struct flock lock;
-
-    lock.l_type = F_WRLCK;
-    lock.l_whence = SEEK_SET;
-    lock.l_start = 0;
-    lock.l_len = 0; /* Until EOF.  */
-    lock.l_pid = getpid ();
-#endif
-    fd = open (cov_filename, O_RDWR | O_CREAT, 0666);
-    if (fd < 0)
-	return NULL;
-  
-#ifndef _WIN32
-    while (fcntl (fd, F_SETLKW, &lock) && errno == EINTR)
-        continue;
-#else
-    {
-        OVERLAPPED overlapped = { 0 };
-        LockFileEx((HANDLE)_get_osfhandle(fd), LOCKFILE_EXCLUSIVE_LOCK,
-		   0, 1, 0, &overlapped);
-    }
-#endif
-
-    return fdopen (fd, "r+");
+    return fopen(cov_filename, "r+");
 }
 
 static unsigned long long get_value(unsigned char *p, int size)
