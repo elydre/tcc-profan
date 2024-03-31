@@ -12,7 +12,7 @@ LD      = "ld"
 
 OUTPUT  = "tcc"
 
-CFLAGS  = "-ffreestanding -fno-exceptions -m32 -I ./profan_zlib -I ./local_lib"
+CFLAGS  = "-ffreestanding -fno-exceptions -m32 -I ./profan_zlib -I ./local_lib -O1"
 LDFLAGS = f"-nostdlib -L {profan_path}/out/zlibs -T link.ld -z max-page-size=0x1000 -lc -lm"
 
 OBJDIR  = "build"
