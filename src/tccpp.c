@@ -3550,7 +3550,7 @@ static void tcc_predefs(TCCState *s1, CString *cs, int is_asm)
     cstr_printf(cs, "#define __TINYC__ 9%.2s\n", TCC_VERSION + 4);
     putdefs(cs, target_machine_defs);
     putdefs(cs, target_os_defs);
-    putdefs(cs, "__profanOS__");
+    putdefs(cs, "__profanOS__\0PROFAN\0");
 
 #ifdef TCC_TARGET_ARM
     if (s1->float_abi == ARM_HARD_FLOAT)
