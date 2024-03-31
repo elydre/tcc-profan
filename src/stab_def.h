@@ -18,7 +18,7 @@
    Boston, MA 02111-1307, USA.  */
 
 /* This contains contribution from Cygnus Support.  */
-
+
 /* Global variable.  Only the name is significant.
    To find the address, look in the corresponding external symbol.  */
 __define_stab (N_GSYM, 0x20, "GSYM")
@@ -178,7 +178,7 @@ __define_stab (N_NBLCS,  0xF8, "NBLCS")
 /* Second symbol entry containing a length-value for the preceding entry.
    The value is the length.  */
 __define_stab (N_LENG, 0xfe, "LENG")
-
+
 /* The above information, in matrix format.
 
 			STAB MATRIX

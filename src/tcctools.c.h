@@ -609,7 +609,7 @@ ST_FUNC int gen_makedeps(TCCState *s1, const char *target, const char *filename)
     }
 
     if(!strcmp(filename, "-"))
-        depout = fdopen(1, "w");
+        depout = stdout;
     else
         /* XXX return err codes instead of error() ? */
         depout = fopen(filename, "w");

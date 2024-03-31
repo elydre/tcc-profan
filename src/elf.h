@@ -19,6 +19,7 @@
 #ifndef _ELF_H
 #define	_ELF_H 1
 
+#ifndef PROFAN
 #ifndef _WIN32
 #include <inttypes.h>
 #else
@@ -32,6 +33,7 @@ typedef unsigned char           uint8_t;
 typedef unsigned short int      uint16_t;
 typedef unsigned int            uint32_t;
 typedef unsigned long long int  uint64_t;
+#endif
 #endif
 #endif
 

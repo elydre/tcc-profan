@@ -1054,8 +1054,8 @@ ST_FUNC void relocate_syms(TCCState *s1, Section *symtab, int do_resolve)
             if (do_resolve) {
 #if defined TCC_IS_NATIVE && !defined TCC_TARGET_PE
                 /* dlsym() needs the undecorated name.  */
-                void *addr = dlsym(RTLD_DEFAULT, &name[s1->leading_underscore]);
-#if TARGETOS_OpenBSD || TARGETOS_FreeBSD || TARGETOS_NetBSD || TARGETOS_ANDROID
+                void *addr = dlsym(NULL, &name[s1->leading_underscore]);
+#if TARGETOS_OpenBSD || TARGETOS_FreeBSD || TARGETOS_NetBSD || TARGETOS_ANDROID || defined(PROFAN)
 		if (addr == NULL) {
 		    int i;
 		    for (i = 0; i < s1->nb_loaded_dlls; i++)
@@ -1691,7 +1691,10 @@ static void tcc_tcov_add_file(TCCState *s1, const char *filename)
 /* add libc crt1/crti objects */
 ST_FUNC void tccelf_add_crtbegin(TCCState *s1)
 {
-#if TARGETOS_OpenBSD
+#ifdef PROFAN
+    if (s1->output_type != TCC_OUTPUT_DLL)
+        tcc_add_crt(s1, "zentry.o");
+#elif TARGETOS_OpenBSD
     if (s1->output_type != TCC_OUTPUT_DLL)
         tcc_add_crt(s1, "crt0.o");
     if (s1->output_type == TCC_OUTPUT_DLL)
@@ -1726,7 +1729,8 @@ ST_FUNC void tccelf_add_crtbegin(TCCState *s1)
 
 ST_FUNC void tccelf_add_crtend(TCCState *s1)
 {
-#if TARGETOS_OpenBSD
+#ifdef PROFAN
+#elif TARGETOS_OpenBSD
     if (s1->output_type == TCC_OUTPUT_DLL)
         tcc_add_crt(s1, "crtendS.o");
     else
@@ -2579,7 +2583,7 @@ static int tcc_output_elf(TCCState *s1, FILE *f, int phnum, ElfW(Phdr) *phdr,
         if (s1->elf_entryname)
             ehdr.e_entry = get_sym_addr(s1, s1->elf_entryname, 1, 0);
         else
-            ehdr.e_entry = get_sym_addr(s1, "_start", !!(file_type & TCC_OUTPUT_EXE), 0);
+            ehdr.e_entry = get_sym_addr(s1, "entry", !!(file_type & TCC_OUTPUT_EXE), 0);
         if (ehdr.e_entry == (addr_t)-1)
             ehdr.e_entry = text_section->sh_addr;
         if (s1->nb_errors)
@@ -2670,6 +2674,7 @@ static int tcc_output_binary(TCCState *s1, FILE *f,
 static int tcc_write_elf_file(TCCState *s1, const char *filename, int phnum,
                               ElfW(Phdr) *phdr, int file_offset, int *sec_order)
 {
+    /* PROFAN_EDIT
     int fd, mode, file_type, ret;
     FILE *f;
 
@@ -2681,6 +2686,12 @@ static int tcc_write_elf_file(TCCState *s1, const char *filename, int phnum,
     unlink(filename);
     fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, mode);
     if (fd < 0 || (f = fdopen(fd, "wb")) == NULL)
+        return tcc_error_noabort("could not write '%s: %s'", filename, strerror(errno));
+    */
+    int ret;
+    FILE *f;
+
+    if ((f = fopen(filename, "wb")) == NULL)
         return tcc_error_noabort("could not write '%s: %s'", filename, strerror(errno));
     if (s1->verbose)
         printf("<- %s\n", filename);

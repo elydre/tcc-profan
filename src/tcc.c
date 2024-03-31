@@ -22,7 +22,7 @@
 #if ONE_SOURCE
 # include "libtcc.c"
 #endif
-#include "tcctools.c"
+#include "tcctools.c.h"
 
 static const char help[] =
     "Tiny C Compiler "TCC_VERSION" - Copyright (C) 2001-2006 Fabrice Bellard\n"
@@ -189,6 +189,8 @@ static const char version[] =
         " FreeBSD"
 #elif TARGETOS_OpenBSD
         " OpenBSD"
+#elif defined(PROFAN)
+        " profanOS"
 #elif TARGETOS_NetBSD
         " NetBSD"
 #else
@@ -263,7 +265,7 @@ static char *default_outputfile(TCCState *s, const char *first_file)
 
 static unsigned getclock_ms(void)
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(PROFAN)
     return GetTickCount();
 #else
     struct timeval tv;

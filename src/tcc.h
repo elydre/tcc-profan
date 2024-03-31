@@ -21,27 +21,36 @@
 #ifndef _TCC_H
 #define _TCC_H
 
+#define PROFAN
+#define TCC_IS_NATIVE
+#define TARGETOS_PROFAN
+#define ONE_SOURCE 0
+#define CONFIG_TCC_SEMLOCK 0
+
 #define _GNU_SOURCE
 #define _DARWIN_C_SOURCE
 #include "config.h"
 
-#include <stdarg.h>
 #include <stdlib.h>
+#include <setjmp.h>
+#include <bordel.h>
+#include <string.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include <math.h>
+#include <time.h>
+
+#undef malloc
+#undef calloc
+#undef realloc
+
 /* gnu headers use to #define __attribute__ to empty for non-gcc compilers */
 #ifdef __TINYC__
 # undef __attribute__
 #endif
-#include <string.h>
-#include <errno.h>
-#include <math.h>
-#include <fcntl.h>
-#include <setjmp.h>
-#include <time.h>
 
 #ifndef _WIN32
 # include <unistd.h>
-# include <sys/time.h>
 # ifndef CONFIG_TCC_STATIC
 #  include <dlfcn.h>
 # endif
@@ -253,11 +262,11 @@ extern long double strtold (const char *__nptr, char **__endptr);
 
 /* path to find crt1.o, crti.o and crtn.o */
 #ifndef CONFIG_TCC_CRTPREFIX
-# define CONFIG_TCC_CRTPREFIX USE_TRIPLET(CONFIG_SYSROOT "/usr/" CONFIG_LDDIR)
+# define CONFIG_TCC_CRTPREFIX USE_TRIPLET(CONFIG_SYSROOT "/sys")
 #endif
 
 #ifndef CONFIG_USR_INCLUDE
-# define CONFIG_USR_INCLUDE "/usr/include"
+# define CONFIG_USR_INCLUDE "/sys/include"
 #endif
 
 /* Below: {B} is substituted by CONFIG_TCCDIR (rsp. -B option) */
@@ -281,8 +290,8 @@ extern long double strtold (const char *__nptr, char **__endptr);
 # else
 #  define CONFIG_TCC_LIBPATHS \
         "{B}" \
-    ":" ALSO_TRIPLET(CONFIG_SYSROOT "/usr/" CONFIG_LDDIR) \
     ":" ALSO_TRIPLET(CONFIG_SYSROOT "/" CONFIG_LDDIR) \
+    ":" ALSO_TRIPLET(CONFIG_SYSROOT "/usr/" CONFIG_LDDIR) \
     ":" ALSO_TRIPLET(CONFIG_SYSROOT "/usr/local/" CONFIG_LDDIR)
 # endif
 #endif
@@ -345,7 +354,7 @@ extern long double strtold (const char *__nptr, char **__endptr);
 
 /* (target specific) libtcc1.a */
 #ifndef TCC_LIBTCC1
-# define TCC_LIBTCC1 "libtcc1.a"
+# define TCC_LIBTCC1 "libtcc.a"
 #endif
 
 #ifndef CONFIG_TCC_CROSSPREFIX

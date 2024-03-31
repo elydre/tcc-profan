@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#if !defined ONE_SOURCE || ONE_SOURCE
+#if ONE_SOURCE
 #include "tccpp.c"
 #include "tccgen.c"
 #include "tccdbg.c"
@@ -220,7 +220,7 @@ static void *default_reallocator(void *ptr, unsigned long size)
         ptr1 = NULL;
     }
     else {
-        ptr1 = realloc(ptr, size);
+        ptr1 = _realloc(ptr, size);
         if (!ptr1) {
             fprintf(stderr, "memory full\n");
             exit (1);
@@ -649,7 +649,7 @@ PUB_FUNC void _tcc_error(const char *fmt, ...)
     va_list ap;
     va_start(ap, fmt);
     error1(ERROR_ERROR, fmt, ap);
-    exit(1);
+    while (1);
 }
 #define _tcc_error use_tcc_error_noabort
 

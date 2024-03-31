@@ -75,7 +75,7 @@ static void rt_exit(rt_frame *f, int code);
 /* defined when included from lib/bt-exe.c */
 #ifndef CONFIG_TCC_BACKTRACE_ONLY
 
-#ifndef _WIN32
+#if !(defined _WIN32 || defined PROFAN)
 # include <sys/mman.h>
 #endif
 
@@ -209,6 +209,8 @@ LIBTCCAPI int tcc_run(TCCState *s1, int argc, char **argv)
 #elif defined(__OpenBSD__) || defined(__NetBSD__)
     extern char **environ;
     char **envp = environ;
+#elif defined(PROFAN)
+    char **envp = NULL;
 #else
     char **envp = environ;
 #endif
@@ -221,9 +223,13 @@ LIBTCCAPI int tcc_run(TCCState *s1, int argc, char **argv)
     if (s1->nostdlib) {
         s1->run_main = top_sym = "_start";
     } else {
+#ifdef PROFAN
+        s1->run_main = top_sym = "main";
+#else
         tcc_add_support(s1, "runmain.o");
         s1->run_main = "_runmain";
         top_sym = "main";
+#endif
     }
     if (tcc_relocate(s1) < 0)
         return -1;
@@ -435,6 +441,9 @@ redo:
 
 static int protect_pages(void *ptr, unsigned long length, int mode)
 {
+#ifdef PROFAN
+    return 0;
+#else
 #ifdef _WIN32
     static const unsigned char protect[] = {
         PAGE_EXECUTE_READ,
@@ -463,6 +472,7 @@ static int protect_pages(void *ptr, unsigned long length, int mode)
 # endif
 #endif
     return 0;
+#endif
 }
 
 #ifdef _WIN64
@@ -1216,6 +1226,7 @@ static int rt_error(rt_frame *f, const char *fmt, ...)
 
 /* ------------------------------------------------------------- */
 
+#ifndef PROFAN
 #ifndef _WIN32
 # include <signal.h>
 # ifndef __OpenBSD__
@@ -1423,14 +1434,16 @@ static long __stdcall cpu_exception_handler(EXCEPTION_POINTERS *ex_info)
     rt_exit(&f, 255);
     return EXCEPTION_EXECUTE_HANDLER;
 }
+#endif
+#endif
 
 /* Generate a stack backtrace when a CPU exception occurs. */
 static void set_exception_handler(void)
 {
+#ifndef PROFAN
     SetUnhandledExceptionFilter(cpu_exception_handler);
-}
-
 #endif
+}
 
 /* ------------------------------------------------------------- */
 /* return the PC at frame level 'level'. Return negative if not found */
@@ -1532,6 +1545,7 @@ static int rt_get_caller_pc(addr_t *paddr, rt_frame *f, int level)
 /* ------------------------------------------------------------- */
 #ifdef CONFIG_TCC_STATIC
 
+#ifndef PROFAN
 /* dummy function for profiling */
 ST_FUNC void *dlopen(const char *filename, int flag)
 {
@@ -1577,6 +1591,7 @@ ST_FUNC void *dlsym(void *handle, const char *symbol)
     }
     return NULL;
 }
+#endif
 
 #endif /* CONFIG_TCC_STATIC */
 #endif /* TCC_IS_NATIVE */

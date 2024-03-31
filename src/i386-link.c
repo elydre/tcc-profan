@@ -12,7 +12,12 @@
 
 #define R_NUM       R_386_NUM
 
+#ifdef PROFAN
+#define ELF_START_ADDR 0xC0000000
+#else
 #define ELF_START_ADDR 0x08048000
+#endif
+
 #define ELF_PAGE_SIZE  0x1000
 
 #define PCRELATIVE_DLLPLT 0
