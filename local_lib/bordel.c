@@ -1,11 +1,5 @@
-#include <syscall.h>
-#include <filesys.h>
-
-#include <string.h>
-#include <stdlib.h>
+#include <profan/syscall.h>
 #include <stdio.h>
-
-#include <bordel.h>
 
 // __udivdi3 definition
 unsigned long long __udivdi3(unsigned long long num, unsigned long long den) {
@@ -16,7 +10,7 @@ unsigned long long __udivdi3(unsigned long long num, unsigned long long den) {
     }
 
     // Left-justify denominator and count shift
-    while ((signed long long)den >= 0) {
+    while ((signed long long) den >= 0) {
         den <<= 1;
         qbit <<= 1;
     }
@@ -40,7 +34,7 @@ unsigned long long __umoddi3(unsigned long long num, unsigned long long den) {
     }
 
     // Left-justify denominator and count shift
-    while ((signed long long)den >= 0) {
+    while ((signed long long) den >= 0) {
         den <<= 1;
     }
 

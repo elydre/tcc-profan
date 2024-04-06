@@ -1,4 +1,3 @@
-#include <syscall.h>
 #include <stdlib.h>
 #include <profan.h>
 

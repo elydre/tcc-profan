@@ -1,7 +1,7 @@
 #ifndef STDLIB_ID
 #define STDLIB_ID 1007
 
-#include <type.h>
+#include <profan/type.h>
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
@@ -87,6 +87,7 @@ int setenv(const char *name, const char *value, int replace);
 int unsetenv(const char *name);
 int clearenv(void);
 int putenv(char *string);
+void srand(unsigned int seed);
 void srand48(long seedval);
 int srand48_r(long int seedval, struct drand48_data *buffer);
 double strtod(char *str, char **ptr);

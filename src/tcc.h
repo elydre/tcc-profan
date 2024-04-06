@@ -36,6 +36,7 @@
 #include <bordel.h>
 #include <string.h>
 #include <stdarg.h>
+#include <errno.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
