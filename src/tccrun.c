@@ -210,7 +210,7 @@ LIBTCCAPI int tcc_run(TCCState *s1, int argc, char **argv)
     extern char **environ;
     char **envp = environ;
 #elif defined(PROFAN)
-    char **envp = get_environ_ptr();
+    char **envp = __get_environ_ptr();
 #else
     char **envp = environ;
 #endif
