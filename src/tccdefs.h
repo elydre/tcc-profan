@@ -24,6 +24,8 @@
     "#define __SIZEOF_INT__ 4\n"
     "#define __INT_MAX__ 0x7fffffff\n"
     "#define __LONG_MAX__ 0x7fffffffL\n"
+    "#define __SCHAR_MAX__ 0x7f\n"
+    "#define __SHRT_MAX__ 0x7fff\n"
     "#define __SIZEOF_LONG_LONG__ 8\n"
     "#define __LONG_LONG_MAX__ 0x7fffffffffffffffLL\n"
     "#define __CHAR_BIT__ 8\n"
