@@ -220,7 +220,7 @@ static void *default_reallocator(void *ptr, unsigned long size)
         ptr1 = NULL;
     }
     else {
-        ptr1 = _realloc(ptr, size);
+        ptr1 = realloc(ptr, size);
         if (!ptr1) {
             fprintf(stderr, "memory full\n");
             exit (1);
