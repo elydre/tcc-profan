@@ -100,6 +100,7 @@ double strtod(char *str, char **ptr);
 long double strtod_l(const char* str, char** end, locale_t loc);
 float strtof(const char *str, char **end);
 long double strtof_l(const char* str, char** end, locale_t loc);
+long double strtold (const char* str, char** end);
 long int strtol(const char *str, char **end, int base);
 long int strtol_l(const char *str, char **end, int base, locale_t loc);
 long long int strtoll(const char* str, char** end, int base);

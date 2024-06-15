@@ -24,6 +24,8 @@
 #endif
 #include "tcctools.c.h"
 
+#include <profan/syscall.h> // c_timer_get_ms
+
 static const char help[] =
     "Tiny C Compiler "TCC_VERSION" - Copyright (C) 2001-2006 Fabrice Bellard\n"
     "Usage: tcc [options...] [-o outfile] [-c] infile(s)...\n"
@@ -265,8 +267,10 @@ static char *default_outputfile(TCCState *s, const char *first_file)
 
 static unsigned getclock_ms(void)
 {
-#if defined(_WIN32) || defined(PROFAN)
+#if defined(_WIN32)
     return GetTickCount();
+#elif defined(PROFAN)
+    return c_timer_get_ms();
 #else
     struct timeval tv;
     gettimeofday(&tv, NULL);

@@ -33,9 +33,10 @@
 
 #include <stdlib.h>
 #include <setjmp.h>
-#include <bordel.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdint.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <stdio.h>
 #include <math.h>

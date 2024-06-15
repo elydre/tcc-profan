@@ -1,6 +1,3 @@
-#include <profan/syscall.h>
-#include <stdio.h>
-
 // __udivdi3 definition
 unsigned long long __udivdi3(unsigned long long num, unsigned long long den) {
     unsigned long long quot = 0, qbit = 1;
@@ -43,14 +40,4 @@ unsigned long long __umoddi3(unsigned long long num, unsigned long long den) {
     }
 
     return num - den;
-}
-
-long double strtold(const char *theString, char **end) {
-    puts("strtold is not implemented yet...");
-    return 0;
-}
-
-// gettimeofday
-int GetTickCount() {
-    return c_timer_get_ms();
 }
