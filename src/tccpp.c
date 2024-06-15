@@ -3522,6 +3522,9 @@ static const char * const target_os_defs =
     "__NetBSD__\0"
 # elif TARGETOS_OpenBSD
     "__OpenBSD__\0"
+# elif defined PROFAN
+    "__profanOS__\0"
+    "PROFAN\0"
 # else
     "__linux__\0"
     "__linux\0"
@@ -3550,7 +3553,6 @@ static void tcc_predefs(TCCState *s1, CString *cs, int is_asm)
     cstr_printf(cs, "#define __TINYC__ 9%.2s\n", TCC_VERSION + 4);
     putdefs(cs, target_machine_defs);
     putdefs(cs, target_os_defs);
-    putdefs(cs, "__profanOS__\0PROFAN\0");
 
 #ifdef TCC_TARGET_ARM
     if (s1->float_abi == ARM_HARD_FLOAT)
