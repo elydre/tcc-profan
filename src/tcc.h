@@ -21,7 +21,10 @@
 #ifndef _TCC_H
 #define _TCC_H
 
+#ifndef PROFAN
 #define PROFAN
+#endif
+
 #define TCC_IS_NATIVE
 #define TARGETOS_PROFAN
 #define ONE_SOURCE 0
