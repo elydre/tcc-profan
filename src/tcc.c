@@ -270,7 +270,7 @@ static unsigned getclock_ms(void)
 #if defined(_WIN32)
     return GetTickCount();
 #elif defined(PROFAN)
-    return c_timer_get_ms();
+    return syscall_timer_get_ms();
 #else
     struct timeval tv;
     gettimeofday(&tv, NULL);
