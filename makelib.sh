@@ -14,4 +14,4 @@ gcc $CFLAGS -c lib/tcov.c -o $OUTDIR/tcov.o
 gcc $CFLAGS -c lib/va_list.c -o $OUTDIR/va_list.o
 gcc $CFLAGS -c lib/dsohandle.c -o $OUTDIR/dsohandle.o
 
-ar rcs libtcc.a $OUTDIR*.o
+ar rcs libtcc1.a $OUTDIR*.o

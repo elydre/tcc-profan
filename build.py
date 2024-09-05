@@ -9,40 +9,50 @@ if not os.path.exists(profan_path):
 
 CC      = "gcc"
 LD      = "ld"
+AR      = "ar"
 
-OUTPUT  = "tcc"
+TCC_NAME  = "tcc"
+LIB_NAME  = "libtcc"
 
-CFLAGS  = "-ffreestanding -fno-exceptions -m32 -I ./profan_zlib -I ./local_lib -O1 -nostdinc"
-LDFLAGS = f"-nostdlib -L {profan_path}/out/zlibs -T link.ld -z max-page-size=0x1000 -lc -lm"
+CC_FLAGS  = "-ffreestanding -fno-exceptions -m32 -I ./profan_zlib -I ./local_lib -O1 -nostdinc"
+SO_FLAGS = f"-m elf_i386 -L {profan_path}/out/zlibs -nostdlib -shared"
+LD_FLAGS = f"-nostdlib -L {profan_path}/out/zlibs -T link.ld -z max-page-size=0x1000 -lc -lm"
 
 OBJDIR  = "build"
 SRCDIR  = "src"
 
-DOOMSRC = [e for e in os.listdir(SRCDIR) if e.endswith(".c")]
+TCCSRC = [e for e in os.listdir(SRCDIR) if e.endswith(".c")]
 
 def execute_command(cmd):
     print(cmd)
     rcode = os.system(cmd)
     if rcode == 0: return
-    print(f"Command failed with exit code {rcode}")
+    print(f"Command '{cmd}' failed with exit code {rcode}")
     exit(rcode if rcode < 256 else 1)
 
-def compile_file(src, dir = SRCDIR):
+def compile_file(src, dir = SRCDIR, pic = False):
     obj = os.path.join(OBJDIR, f"{os.path.splitext(src)[0]}.o")
-    cmd = f"{CC} -c {os.path.join(dir, src)} -o {obj} {CFLAGS}"
+    cmd = f"{CC} -c {os.path.join(dir, src)} -o {obj} {CC_FLAGS}{f' -fPIC' if pic else ''}"
     execute_command(cmd)
     return obj
 
-def link_files(entry, objs, output = OUTPUT):
-    execute_command(f"{LD} {LDFLAGS} -o {output}.elf {entry} {' '.join(objs)} ")
+def link_to_exec(entry, objs):
+    execute_command(f"{LD} {LD_FLAGS} -o {TCC_NAME}.elf {entry} {' '.join(objs)} {LIB_NAME}.a")
+
+def link_to_lib(objs):
+    execute_command(f"{LD} {SO_FLAGS} -o {LIB_NAME}.so {' '.join(objs)} -lc -lm")
+    execute_command(f"{AR} rcs {LIB_NAME}.a {' '.join(objs)} ")
 
 def main():
     execute_command(f"mkdir -p {OBJDIR}")
-    objs = [compile_file(src) for src in DOOMSRC]
+    objs = [compile_file(src, pic = True) for src in TCCSRC if src != "tcc.c"]
     objs.append(compile_file("bordel.c", "local_lib"))
 
-    entry = compile_file("entry.c", ".")
-    link_files(entry, objs)
+    link_to_lib(objs)
+
+    link_to_exec(compile_file("entry.c", "."), [compile_file("tcc.c")])
+
+    print("=== Done ===")
 
 if __name__ == "__main__":
     main()

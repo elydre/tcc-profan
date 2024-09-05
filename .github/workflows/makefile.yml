@@ -40,3 +40,5 @@ jobs:
         files: |
           tcc.elf
           libtcc.a
+          libtcc.so
+          libtcc1.a

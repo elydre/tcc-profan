@@ -2,5 +2,6 @@ build_lib/
 build/
 
 *.elf
+*.so
 *.o
 *.a
