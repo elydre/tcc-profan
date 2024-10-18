@@ -14,9 +14,9 @@ AR      = "ar"
 TCC_NAME  = "tcc"
 LIB_NAME  = "libtcc"
 
-CC_FLAGS  = "-ffreestanding -fno-exceptions -m32 -I ./profan_zlib -I ./local_lib -O1 -nostdinc"
+CC_FLAGS  = "-ffreestanding -fno-exceptions -m32 -I ./profan_zlib -I ./local_lib -nostdinc -O3 -fno-stack-protector -fno-omit-frame-pointer"
 SO_FLAGS = f"-m elf_i386 -L {profan_path}/out/zlibs -nostdlib -shared"
-LD_FLAGS = f"-nostdlib -L {profan_path}/out/zlibs -T link.ld -z max-page-size=0x1000 -lc -lm"
+LD_FLAGS = f"-nostdlib -L {profan_path}/out/zlibs -T link.ld -lc -lm"
 
 OBJDIR  = "build"
 SRCDIR  = "src"
