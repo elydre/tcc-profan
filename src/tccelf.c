@@ -2583,7 +2583,7 @@ static int tcc_output_elf(TCCState *s1, FILE *f, int phnum, ElfW(Phdr) *phdr,
         if (s1->elf_entryname)
             ehdr.e_entry = get_sym_addr(s1, s1->elf_entryname, 1, 0);
         else
-            ehdr.e_entry = get_sym_addr(s1, "entry", !!(file_type & TCC_OUTPUT_EXE), 0);
+            ehdr.e_entry = get_sym_addr(s1, "_start", !!(file_type & TCC_OUTPUT_EXE), 0);
         if (ehdr.e_entry == (addr_t)-1)
             ehdr.e_entry = text_section->sh_addr;
         if (s1->nb_errors)

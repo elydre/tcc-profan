@@ -5,7 +5,7 @@ OUTPUT_ARCH (i386)
 /* Linker script for an application for the OS. */
 
 /* Entry point for application */
-ENTRY (entry)
+ENTRY (_start)
 
 SECTIONS {
     . = 0xC0000000;

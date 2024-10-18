@@ -43,9 +43,14 @@
 int serial_debug(char *frm, ...);
 void profan_print_memory(void *addr, uint32_t size);
 char *assemble_path(const char *old, const char *new);
-int profan_wait_pid(uint32_t pid);
 char *open_input(int *size);
-void profan_cleanup(void);
+int profan_wait_pid(uint32_t pid);
+
+char *profan_fn_name(void *ptrn, char **libname);
+void *profan_malloc(uint32_t size, int as_kernel);
+void *profan_calloc(uint32_t nmemb, uint32_t lsize, int as_kernel);
+void *profan_realloc(void *mem, uint32_t new_size, int as_kernel);
+void profan_free(void *mem);
 
 #ifndef PROFAN_C
 #define get_func_addr ((uint32_t (*)(uint32_t, uint32_t)) *(uint32_t *) 0x1ffffb)
@@ -55,7 +60,7 @@ void profan_cleanup(void);
 #define profan_kb_get_char ((char (*)(uint8_t, uint8_t)) get_func_addr(PROFAN_LIB_ID, 4))
 #define open_input_keyboard ((char *(*)(int *, char *)) get_func_addr(PROFAN_LIB_ID, 5))
 #define open_input_serial ((char *(*)(int *, int)) get_func_addr(PROFAN_LIB_ID, 6))
-#define run_ifexist_full ((int (*)(runtime_args_t, int *)) get_func_addr(PROFAN_LIB_ID, 9))
+#define run_ifexist_full ((int (*)(runtime_args_t, int *)) get_func_addr(PROFAN_LIB_ID, 7))
 #endif
 
 #endif
