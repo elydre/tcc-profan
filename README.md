@@ -14,7 +14,8 @@ sh makelib.sh
 ### copy tcc.elf and libtcc.a to profanOS
 ```
 cp tcc.elf (profanOS)/out/zapps/fatpath/
-cp libtcc.a (profanOS)/out/sys/
+cp libtcc.so (profanOS)/out/zlibs/
+cp libtcc1.a (profanOS)/out/sys/
 ```
 
 Features:
