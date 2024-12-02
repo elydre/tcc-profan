@@ -209,8 +209,6 @@ LIBTCCAPI int tcc_run(TCCState *s1, int argc, char **argv)
 #elif defined(__OpenBSD__) || defined(__NetBSD__)
     extern char **environ;
     char **envp = environ;
-#elif defined(PROFAN)
-    char **envp = __get_environ_ptr();
 #else
     char **envp = environ;
 #endif
