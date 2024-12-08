@@ -14,7 +14,7 @@ AR      = "ar"
 TCC_NAME  = "tcc"
 LIB_NAME  = "libtcc"
 
-CC_FLAGS  = "-ffreestanding -fno-exceptions -m32 -I ./profan_zlib -I ./local_lib -nostdinc -O3 -fno-stack-protector -fno-omit-frame-pointer"
+CC_FLAGS = f"-ffreestanding -fno-exceptions -m32 -nostdinc -O3 -fno-stack-protector -fno-omit-frame-pointer -I {profan_path}/include/zlibs -I {profan_path}/include/addons"
 SO_FLAGS = f"-m elf_i386 -L {profan_path}/out/zlibs -nostdlib -shared"
 LD_FLAGS = f"-nostdlib -L {profan_path}/out/zlibs -T link.ld -lc -lm"
 
@@ -46,7 +46,6 @@ def link_to_lib(objs):
 def main():
     execute_command(f"mkdir -p {OBJDIR}")
     objs = [compile_file(src, pic = True) for src in TCCSRC if src != "tcc.c"]
-    objs.append(compile_file("bordel.c", "local_lib"))
 
     link_to_lib(objs)
 
