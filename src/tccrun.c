@@ -105,14 +105,14 @@ static void win64_del_function_table(void *);
 #define PAGEALIGN(n) ((addr_t)n + (-(addr_t)n & (PAGESIZE-1)))
 
 #if !_WIN32 && !__APPLE__
-//#define HAVE_SELINUX 1
+//#define CONFIG_SELINUX 1
 #endif
 
 static int rt_mem(TCCState *s1, int size)
 {
     void *ptr;
     int ptr_diff = 0;
-#ifdef HAVE_SELINUX
+#ifdef CONFIG_SELINUX
     /* Using mmap instead of malloc */
     void *prw;
     char tmpfname[] = "/tmp/.tccrunXXXXXX";
@@ -185,7 +185,7 @@ ST_FUNC void tcc_run_free(TCCState *s1)
         return;
     st_unlink(s1);
     size = s1->run_size;
-#ifdef HAVE_SELINUX
+#ifdef CONFIG_SELINUX
     munmap(ptr, size);
 #else
     /* unprotect memory to make it usable for malloc again */
@@ -196,6 +196,8 @@ ST_FUNC void tcc_run_free(TCCState *s1)
     tcc_free(ptr);
 #endif
 }
+
+#define RT_EXIT_ZERO 0xE0E00E0E /* passed from longjmp instead of '0' */
 
 /* launch the compiled program with the given arguments */
 LIBTCCAPI int tcc_run(TCCState *s1, int argc, char **argv)
@@ -242,7 +244,7 @@ LIBTCCAPI int tcc_run(TCCState *s1, int argc, char **argv)
     ret = tcc_setjmp(s1, main_jb, tcc_get_symbol(s1, top_sym));
     if (0 == ret)
         ret = prog_main(argc, argv, envp);
-    else if (256 == ret)
+    else if (RT_EXIT_ZERO == ret)
         ret = 0;
 
     if (s1->dflag & 16 && ret) /* tcc -dt -run ... */
@@ -385,7 +387,7 @@ redo:
         if (copy == 2) { /* set permissions */
             if (n == 0) /* no data  */
                 continue;
-#ifdef HAVE_SELINUX
+#ifdef CONFIG_SELINUX
             if (k == 0) /* SHF_EXECINSTR has its own mapping */
                 continue;
 #endif
@@ -604,7 +606,7 @@ static void rt_exit(rt_frame *f, int code)
     rt_post_sem();
     if (s && s->run_lj) {
         if (code == 0)
-            code = 256;
+            code = RT_EXIT_ZERO;
         ((void(*)(void*,int))s->run_lj)(s->run_jb, code);
     }
     exit(code);
@@ -768,19 +770,9 @@ found:
 /* ------------------------------------------------------------- */
 /* rt_printline - dwarf version */
 
-#define MAX_128	((8 * sizeof (long long) + 6) / 7)
-
 #define DIR_TABLE_SIZE	(64)
 #define FILE_TABLE_SIZE	(512)
 
-#define	dwarf_read_1(ln,end) \
-	((ln) < (end) ? *(ln)++ : 0)
-#define	dwarf_read_2(ln,end) \
-	((ln) + 2 < (end) ? (ln) += 2, read16le((ln) - 2) : 0)
-#define	dwarf_read_4(ln,end) \
-	((ln) + 4 < (end) ? (ln) += 4, read32le((ln) - 4) : 0)
-#define	dwarf_read_8(ln,end) \
-	((ln) + 8 < (end) ? (ln) += 8, read64le((ln) - 8) : 0)
 #define	dwarf_ignore_type(ln, end) /* timestamp/size/md5/... */ \
 	switch (entry_format[j].form) { \
 	case DW_FORM_data1: (ln) += 1; break; \
@@ -791,45 +783,6 @@ found:
 	case DW_FORM_udata: dwarf_read_uleb128(&(ln), (end)); break; \
 	default: goto next_line; \
 	}
-
-static unsigned long long
-dwarf_read_uleb128(unsigned char **ln, unsigned char *end)
-{
-    unsigned char *cp = *ln;
-    unsigned long long retval = 0;
-    int i;
-
-    for (i = 0; i < MAX_128; i++) {
-	unsigned long long byte = dwarf_read_1(cp, end);
-
-        retval |= (byte & 0x7f) << (i * 7);
-	if ((byte & 0x80) == 0)
-	    break;
-    }
-    *ln = cp;
-    return retval;
-}
-
-static long long
-dwarf_read_sleb128(unsigned char **ln, unsigned char *end)
-{
-    unsigned char *cp = *ln;
-    long long retval = 0;
-    int i;
-
-    for (i = 0; i < MAX_128; i++) {
-	unsigned long long byte = dwarf_read_1(cp, end);
-
-        retval |= (byte & 0x7f) << (i * 7);
-	if ((byte & 0x80) == 0) {
-	    if ((byte & 0x40) && (i + 1) * 7 < 64)
-		retval |= -1LL << ((i + 1) * 7);
-	    break;
-	}
-    }
-    *ln = cp;
-    return retval;
-}
 
 static addr_t rt_printline_dwarf (rt_context *rc, addr_t wanted_pc, bt_info *bi)
 {
@@ -1438,9 +1391,9 @@ static long __stdcall cpu_exception_handler(EXCEPTION_POINTERS *ex_info)
 /* Generate a stack backtrace when a CPU exception occurs. */
 static void set_exception_handler(void)
 {
-#ifndef __profanOS__
+    #ifndef __profanOS__
     SetUnhandledExceptionFilter(cpu_exception_handler);
-#endif
+    #endif
 }
 
 /* ------------------------------------------------------------- */

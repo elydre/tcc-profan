@@ -135,6 +135,9 @@
      DEF(TOK_FASTCALL1, "fastcall")
      DEF(TOK_FASTCALL2, "__fastcall")
      DEF(TOK_FASTCALL3, "__fastcall__")
+     DEF(TOK_THISCALL1, "thiscall")
+     DEF(TOK_THISCALL2, "__thiscall")
+     DEF(TOK_THISCALL3, "__thiscall__")
      DEF(TOK_REGPARM1, "regparm")
      DEF(TOK_REGPARM2, "__regparm__")
      DEF(TOK_CLEANUP1, "cleanup")
@@ -168,6 +171,7 @@
      DEF(TOK_builtin_frame_address, "__builtin_frame_address")
      DEF(TOK_builtin_return_address, "__builtin_return_address")
      DEF(TOK_builtin_expect, "__builtin_expect")
+     DEF(TOK_builtin_unreachable, "__builtin_unreachable")
      /*DEF(TOK_builtin_va_list, "__builtin_va_list")*/
 #if defined TCC_TARGET_PE && defined TCC_TARGET_X86_64
      DEF(TOK_builtin_va_start, "__builtin_va_start")
@@ -408,6 +412,7 @@
  DEF_ASMDIR(short)
  DEF_ASMDIR(long)
  DEF_ASMDIR(int)
+ DEF_ASMDIR(symver)
  DEF_ASMDIR(section)    /* must be last directive */
 
 #if defined TCC_TARGET_I386 || defined TCC_TARGET_X86_64

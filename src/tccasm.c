@@ -728,7 +728,7 @@ static void asm_parse_directive(TCCState *s1, int global)
     case TOK_ASMDIR_ascii:
     case TOK_ASMDIR_asciz:
         {
-            const uint8_t *p;
+            const char *p;
             int i, size, t;
 
             t = tok;
@@ -772,15 +772,21 @@ static void asm_parse_directive(TCCState *s1, int global)
 	break;
     case TOK_ASMDIR_file:
         {
-            char filename[512];
-
-            filename[0] = '\0';
+            const char *p;
+            parse_flags &= ~PARSE_FLAG_TOK_STR;
             next();
-            if (tok == TOK_STR)
-                pstrcat(filename, sizeof(filename), tokc.str.data);
-            else
-                pstrcat(filename, sizeof(filename), get_tok_str(tok, NULL));
-            tcc_warning_c(warn_unsupported)("ignoring .file %s", filename);
+            if (tok == TOK_PPNUM)
+                next();
+            if (tok == TOK_PPSTR && tokc.str.data[0] == '"') {
+                tokc.str.data[tokc.str.size - 2] = 0;
+                p = tokc.str.data + 1;
+            } else if (tok >= TOK_IDENT) {
+                p = get_tok_str(tok, &tokc);
+            } else {
+                skip_to_eol(0);
+                break;
+            }
+            tccpp_putfile(p);
             next();
         }
         break;
@@ -820,6 +826,7 @@ static void asm_parse_directive(TCCState *s1, int global)
         { 
             Sym *sym;
             const char *newtype;
+            int st_type;
 
             next();
             sym = get_asm_sym(tok, NULL);
@@ -834,11 +841,17 @@ static void asm_parse_directive(TCCState *s1, int global)
             }
 
             if (!strcmp(newtype, "function") || !strcmp(newtype, "STT_FUNC")) {
-                sym->type.t = (sym->type.t & ~VT_BTYPE) | VT_FUNC;
+                if (IS_ASM_SYM(sym))
+                    sym->type.t = (sym->type.t & ~VT_ASM) | VT_ASM_FUNC;
+                st_type = STT_FUNC;
+            set_st_type:
                 if (sym->c) {
                     ElfSym *esym = elfsym(sym);
-                    esym->st_info = ELFW(ST_INFO)(ELFW(ST_BIND)(esym->st_info), STT_FUNC);
+                    esym->st_info = ELFW(ST_INFO)(ELFW(ST_BIND)(esym->st_info), st_type);
                 }
+            } else if (!strcmp(newtype, "object") || !strcmp(newtype, "STT_OBJECT")) {
+                st_type = STT_OBJECT;
+                goto set_st_type;
             } else
                 tcc_warning_c(warn_unsupported)("change type of '%s' from 0x%x to '%s' ignored",
                     get_tok_str(sym->v, NULL), sym->type.t, newtype);
@@ -851,6 +864,7 @@ static void asm_parse_directive(TCCState *s1, int global)
         {
             char sname[256];
 	    int old_nb_section = s1->nb_sections;
+            int flags = SHF_ALLOC;
 
 	    tok1 = tok;
             /* XXX: support more options */
@@ -864,10 +878,17 @@ static void asm_parse_directive(TCCState *s1, int global)
                 next();
             }
             if (tok == ',') {
+                const char *p;
                 /* skip section options */
                 next();
                 if (tok != TOK_STR)
                     expect("string constant");
+                for (p = tokc.str.data; *p; ++p) {
+                    if (*p == 'w')
+                        flags |= SHF_WRITE;
+                    if (*p == 'x')
+                        flags |= SHF_EXECINSTR;
+                }
                 next();
                 if (tok == ',') {
                     next();
@@ -884,8 +905,10 @@ static void asm_parse_directive(TCCState *s1, int global)
 	    /* If we just allocated a new section reset its alignment to
 	       1.  new_section normally acts for GCC compatibility and
 	       sets alignment to PTR_SIZE.  The assembler behaves different. */
-	    if (old_nb_section != s1->nb_sections)
+	    if (old_nb_section != s1->nb_sections) {
 	        cur_text_section->sh_addralign = 1;
+	        cur_text_section->sh_flags = flags;
+            }
         }
         break;
     case TOK_ASMDIR_previous:
@@ -948,6 +971,15 @@ static void asm_parse_directive(TCCState *s1, int global)
         }
         break;
 #endif
+    /* TODO: Implement symvar support. FreeBSD >= 14 needs this */
+    case TOK_ASMDIR_symver:
+	next();
+	next();
+        skip(',');
+	next();
+        skip('@');
+	next();
+	break;
     default:
         tcc_error("unknown assembler directive '.%s'", get_tok_str(tok, NULL));
         break;
@@ -968,6 +1000,7 @@ static int tcc_assemble_internal(TCCState *s1, int do_preprocess, int global)
         next();
         if (tok == TOK_EOF)
             break;
+        tcc_debug_line(s1);
         parse_flags |= PARSE_FLAG_LINEFEED; /* XXX: suppress that hack */
     redo:
         if (tok == '#') {
@@ -1033,9 +1066,8 @@ ST_FUNC int tcc_assemble(TCCState *s1, int do_preprocess)
 /* GCC inline asm support */
 
 /* assemble the string 'str' in the current C compilation unit without
-   C preprocessing. NOTE: str is modified by modifying the '\0' at the
-   end */
-static void tcc_assemble_inline(TCCState *s1, char *str, int len, int global)
+   C preprocessing. */
+static void tcc_assemble_inline(TCCState *s1, const char *str, int len, int global)
 {
     const int *saved_macro_ptr = macro_ptr;
     int dotid = set_idnum('.', IS_ID);
@@ -1115,6 +1147,9 @@ static void subst_asm_operands(ASMOperand *operands, int nb_operands,
             if (*str == 'c' || *str == 'n' ||
                 *str == 'b' || *str == 'w' || *str == 'h' || *str == 'k' ||
 		*str == 'q' || *str == 'l' ||
+#ifdef TCC_TARGET_RISCV64
+		*str == 'z' ||
+#endif
 		/* P in GCC would add "@PLT" to symbol refs in PIC mode,
 		   and make literal operands not be decorated with '$'.  */
 		*str == 'P')
@@ -1362,7 +1397,7 @@ ST_FUNC void asm_global_instr(void)
         expect("';'");
     
 #ifdef ASM_DEBUG
-    printf("asm_global: \"%s\"\n", (char *)astr.data);
+    printf("asm_global: \"%s\"\n", (char *)astr->data);
 #endif
     cur_text_section = text_section;
     ind = cur_text_section->data_offset;

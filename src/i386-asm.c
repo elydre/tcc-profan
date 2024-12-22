@@ -143,10 +143,12 @@ enum {
 # define TREG_XAX   TREG_RAX
 # define TREG_XCX   TREG_RCX
 # define TREG_XDX   TREG_RDX
+# define TOK_ASM_xax TOK_ASM_rax
 #else
 # define TREG_XAX   TREG_EAX
 # define TREG_XCX   TREG_ECX
 # define TREG_XDX   TREG_EDX
+# define TOK_ASM_xax TOK_ASM_eax
 #endif
 
 typedef struct ASMInstr {
@@ -1000,15 +1002,21 @@ again:
     modrm_index = -1;
     modreg_index = -1;
     if (pa->instr_type & OPC_MODRM) {
+#ifdef TCC_TARGET_X86_64
 	if (!nb_ops) {
 	    /* A modrm opcode without operands is a special case (e.g. mfence).
-	       It has a group and acts as if there's an register operand 0
-	       (ax).  */
+	       It has a group and acts as if there's an register operand 0 */
 	    i = 0;
 	    ops[i].type = OP_REG;
-	    ops[i].reg = 0;
+	    if (pa->sym == TOK_ASM_endbr64)
+	      ops[i].reg = 2; // dx
+	    else if (pa->sym >= TOK_ASM_lfence && pa->sym <= TOK_ASM_sfence)
+  	      ops[i].reg = 0; // ax
+	    else
+	      tcc_error("bad MODR/M opcode without operands");
 	    goto modrm_found;
 	}
+#endif
         /* first look for an ea operand */
         for(i = 0;i < nb_ops; i++) {
             if (op_type[i] & OP_EA)
@@ -1342,7 +1350,6 @@ ST_FUNC void asm_compute_constraints(ASMOperand *operands,
 	    if (is_reg_allocated(op->reg))
 	        tcc_error("asm regvar requests register that's taken already");
 	    reg = op->reg;
-	    goto reg_found;
 	}
     try_next:
         c = *str++;
@@ -1385,12 +1392,17 @@ ST_FUNC void asm_compute_constraints(ASMOperand *operands,
         case 'D':
             reg = 7;
         alloc_reg:
+            if (op->reg >= 0 && reg != op->reg)
+                goto try_next;
             if (is_reg_allocated(reg))
                 goto try_next;
             goto reg_found;
         case 'q':
             /* eax, ebx, ecx or edx */
-            for(reg = 0; reg < 4; reg++) {
+            if (op->reg >= 0) {
+                if ((reg = op->reg) < 4)
+                    goto reg_found;
+            } else for(reg = 0; reg < 4; reg++) {
                 if (!is_reg_allocated(reg))
                     goto reg_found;
             }
@@ -1399,7 +1411,9 @@ ST_FUNC void asm_compute_constraints(ASMOperand *operands,
 	case 'R':
 	case 'p': /* A general address, for x86(64) any register is acceptable*/
             /* any general register */
-            for(reg = 0; reg < 8; reg++) {
+            if ((reg = op->reg) >= 0)
+                goto reg_found;
+            else for(reg = 0; reg < 8; reg++) {
                 if (!is_reg_allocated(reg))
                     goto reg_found;
             }
@@ -1499,7 +1513,6 @@ ST_FUNC void subst_asm_operand(CString *add_str,
                               SValue *sv, int modifier)
 {
     int r, reg, size, val;
-    char buf[64];
 
     r = sv->r;
     if ((r & VT_VALMASK) == VT_CONST) {
@@ -1526,32 +1539,19 @@ ST_FUNC void subst_asm_operand(CString *add_str,
         val = sv->c.i;
         if (modifier == 'n')
             val = -val;
-        snprintf(buf, sizeof(buf), "%d", (int)sv->c.i);
-        cstr_cat(add_str, buf, -1);
+        cstr_printf(add_str, "%d", (int)sv->c.i);
     no_offset:;
 #ifdef TCC_TARGET_X86_64
         if (r & VT_LVAL)
             cstr_cat(add_str, "(%rip)", -1);
 #endif
     } else if ((r & VT_VALMASK) == VT_LOCAL) {
-#ifdef TCC_TARGET_X86_64
-        snprintf(buf, sizeof(buf), "%d(%%rbp)", (int)sv->c.i);
-#else
-        snprintf(buf, sizeof(buf), "%d(%%ebp)", (int)sv->c.i);
-#endif
-        cstr_cat(add_str, buf, -1);
+        cstr_printf(add_str, "%d(%%%s)", (int)sv->c.i, get_tok_str(TOK_ASM_xax + 5, NULL));
     } else if (r & VT_LVAL) {
         reg = r & VT_VALMASK;
         if (reg >= VT_CONST)
             tcc_internal_error("");
-        snprintf(buf, sizeof(buf), "(%%%s)",
-#ifdef TCC_TARGET_X86_64
-                 get_tok_str(TOK_ASM_rax + reg, NULL)
-#else
-                 get_tok_str(TOK_ASM_eax + reg, NULL)
-#endif
-		 );
-        cstr_cat(add_str, buf, -1);
+        cstr_printf(add_str, "(%%%s)", get_tok_str(TOK_ASM_xax + reg, NULL));
     } else {
         /* register case */
         reg = r & VT_VALMASK;
@@ -1611,8 +1611,7 @@ ST_FUNC void subst_asm_operand(CString *add_str,
             break;
 #endif
         }
-        snprintf(buf, sizeof(buf), "%%%s", get_tok_str(reg, NULL));
-        cstr_cat(add_str, buf, -1);
+        cstr_printf(add_str, "%%%s", get_tok_str(reg, NULL));
     }
 }
 

@@ -12,6 +12,10 @@
 # define DLL_EXPORT
 #endif
 
+#ifdef __profanOS__
+extern void _exit(int);
+#endif
+
 /* Needed when using ...libtcc1-usegcc=yes in lib/Makefile */
 #if (defined(__GNUC__) && (__GNUC__ >= 6)) || defined(__clang__)
 #pragma GCC diagnostic push

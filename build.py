@@ -11,7 +11,7 @@ CC      = "gcc"
 LD      = "ld"
 AR      = "ar"
 
-CC_FLAGS = f"-ffreestanding -fno-exceptions -m32 -nostdinc -O3 -fno-stack-protector -fno-omit-frame-pointer -I {profan_path}/include/zlibs -I {profan_path}/include/addons -D__profanOS__"
+CC_FLAGS = f"-ffreestanding -fno-exceptions -m32 -nostdinc -O3 -fno-stack-protector -fno-omit-frame-pointer -I {profan_path}/include/zlibs -I {profan_path}/include/addons -D__profanOS__ -DONE_SOURCE=0"
 SO_FLAGS = f"-m elf_i386 -L {profan_path}/out/zlibs -nostdlib -shared"
 LD_FLAGS = f"-nostdlib -L {profan_path}/out/zlibs -T link.ld -lc -lm"
 
