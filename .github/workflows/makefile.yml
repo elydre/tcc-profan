@@ -28,7 +28,6 @@ jobs:
     - name: build tcc
       run: |
         python3 build.py profanOS
-        sh makelib.sh
 
     - name: Release to GitHub
       uses: marvinpinto/action-automatic-releases@latest
