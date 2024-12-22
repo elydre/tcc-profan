@@ -12,7 +12,7 @@
 
 #define R_NUM       R_386_NUM
 
-#ifdef PROFAN
+#ifdef __profanOS__
 #define ELF_START_ADDR 0xC0000000
 #else
 #define ELF_START_ADDR 0x08048000

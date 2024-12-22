@@ -1,5 +1,5 @@
-build_lib/
 build/
+tmp/
 
 *.elf
 *.so

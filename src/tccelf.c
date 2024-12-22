@@ -1055,7 +1055,7 @@ ST_FUNC void relocate_syms(TCCState *s1, Section *symtab, int do_resolve)
 #if defined TCC_IS_NATIVE && !defined TCC_TARGET_PE
                 /* dlsym() needs the undecorated name.  */
                 void *addr = dlsym(NULL, &name[s1->leading_underscore]);
-#if TARGETOS_OpenBSD || TARGETOS_FreeBSD || TARGETOS_NetBSD || TARGETOS_ANDROID || defined(PROFAN)
+#if TARGETOS_OpenBSD || TARGETOS_FreeBSD || TARGETOS_NetBSD || TARGETOS_ANDROID || defined(__profanOS__)
 		if (addr == NULL) {
 		    int i;
 		    for (i = 0; i < s1->nb_loaded_dlls; i++)
@@ -1691,7 +1691,7 @@ static void tcc_tcov_add_file(TCCState *s1, const char *filename)
 /* add libc crt1/crti objects */
 ST_FUNC void tccelf_add_crtbegin(TCCState *s1)
 {
-#ifdef PROFAN
+#ifdef __profanOS__
     if (s1->output_type != TCC_OUTPUT_DLL)
         tcc_add_crt(s1, "zentry.o");
 #elif TARGETOS_OpenBSD
@@ -1729,7 +1729,7 @@ ST_FUNC void tccelf_add_crtbegin(TCCState *s1)
 
 ST_FUNC void tccelf_add_crtend(TCCState *s1)
 {
-#ifdef PROFAN
+#ifdef __profanOS__
 #elif TARGETOS_OpenBSD
     if (s1->output_type == TCC_OUTPUT_DLL)
         tcc_add_crt(s1, "crtendS.o");
@@ -1770,10 +1770,12 @@ ST_FUNC void tcc_add_runtime(TCCState *s1)
 #ifdef CONFIG_TCC_BCHECK
         if (s1->do_bounds_check && s1->output_type != TCC_OUTPUT_DLL) {
             tcc_add_support(s1, "bcheck.o");
+#ifndef __profanOS__
 # if !(TARGETOS_OpenBSD || TARGETOS_NetBSD)
             tcc_add_library_err(s1, "dl");
 # endif
             lpthread = 1;
+#endif
         }
 #endif
 #ifdef CONFIG_TCC_BACKTRACE
@@ -1783,7 +1785,9 @@ ST_FUNC void tcc_add_runtime(TCCState *s1)
             if (s1->output_type != TCC_OUTPUT_DLL)
                 tcc_add_support(s1, "bt-log.o");
             tcc_add_btstub(s1);
+#ifndef __profanOS__
             lpthread = 1;
+#endif
         }
 #endif
         if (lpthread)

@@ -191,7 +191,7 @@ static const char version[] =
         " FreeBSD"
 #elif TARGETOS_OpenBSD
         " OpenBSD"
-#elif defined(PROFAN)
+#elif defined(__profanOS__)
         " profanOS"
 #elif TARGETOS_NetBSD
         " NetBSD"
@@ -269,7 +269,7 @@ static unsigned getclock_ms(void)
 {
 #if defined(_WIN32)
     return GetTickCount();
-#elif defined(PROFAN)
+#elif defined(__profanOS__)
     return syscall_timer_get_ms();
 #else
     struct timeval tv;

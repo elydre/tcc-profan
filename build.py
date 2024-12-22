@@ -11,47 +11,74 @@ CC      = "gcc"
 LD      = "ld"
 AR      = "ar"
 
-TCC_NAME  = "tcc"
-LIB_NAME  = "libtcc"
-
-CC_FLAGS = f"-ffreestanding -fno-exceptions -m32 -nostdinc -O3 -fno-stack-protector -fno-omit-frame-pointer -I {profan_path}/include/zlibs -I {profan_path}/include/addons"
+CC_FLAGS = f"-ffreestanding -fno-exceptions -m32 -nostdinc -O3 -fno-stack-protector -fno-omit-frame-pointer -I {profan_path}/include/zlibs -I {profan_path}/include/addons -D__profanOS__"
 SO_FLAGS = f"-m elf_i386 -L {profan_path}/out/zlibs -nostdlib -shared"
 LD_FLAGS = f"-nostdlib -L {profan_path}/out/zlibs -T link.ld -lc -lm"
 
-OBJDIR  = "build"
-SRCDIR  = "src"
+OBJDIR  = "tmp"
+OUTDIR  = "build"
 
-TCCSRC = [e for e in os.listdir(SRCDIR) if e.endswith(".c")]
+SRCDIR  = "src"
+LIB1DIR = "libtcc1"
+
+TCC_SRC     = [e for e in os.listdir(SRCDIR) if e.endswith(".c") and e != "tcc.c"]
+
+LIBTCC1_SRC = ["libtcc1.c", "alloca.S", "alloca-bt.S", "stdatomic.c", "atomic.S", "builtin.c", "tcov.c", "va_list.c", "dsohandle.c"]
+EXTRA_SRC   = ["runmain.c", "bt-exe.c", "bt-log.c", "bcheck.c"]
 
 def execute_command(cmd):
-    print(cmd)
     rcode = os.system(cmd)
     if rcode == 0: return
-    print(f"Command '{cmd}' failed with exit code {rcode}")
+    print(f"{cmd}\nfailed with exit code {rcode}")
     exit(rcode if rcode < 256 else 1)
 
-def compile_file(src, dir = SRCDIR, pic = False):
-    obj = os.path.join(OBJDIR, f"{os.path.splitext(src)[0]}.o")
+def compile_file(src, dir = SRCDIR, out = OBJDIR, pic = False):
+    print(f"CC {'pic ' if pic else 4*' '}{src}")
+    obj = os.path.join(out, f"{os.path.splitext(src)[0]}.o")
     cmd = f"{CC} -c {os.path.join(dir, src)} -o {obj} {CC_FLAGS}{f' -fPIC' if pic else ''}"
     execute_command(cmd)
     return obj
 
-def link_to_exec(entry, objs):
-    execute_command(f"{LD} {LD_FLAGS} -o {TCC_NAME}.elf {entry} {' '.join(objs)} {LIB_NAME}.a")
+def link_to_exec(entry, objs, name):
+    print(f"LD === {name}.elf")
+    execute_command(f"{LD} {LD_FLAGS} -o {OUTDIR}/{name}.elf {entry} {' '.join(objs)}")
 
-def link_to_lib(objs):
-    execute_command(f"{LD} {SO_FLAGS} -o {LIB_NAME}.so {' '.join(objs)} -lc -lm")
-    execute_command(f"{AR} rcs {LIB_NAME}.a {' '.join(objs)} ")
+def link_to_lib(objs, name):
+    print(f"LD === {name}.so")
+    execute_command(f"{LD} {SO_FLAGS} -o {OUTDIR}/{name}.so {' '.join(objs)} -lc -lm")
 
-def main():
-    execute_command(f"mkdir -p {OBJDIR}")
-    objs = [compile_file(src, pic = True) for src in TCCSRC if src != "tcc.c"]
+def archive_objs(objs, name):
+    print(f"AR === {name}.a")
+    execute_command(f"{AR} rcs {OUTDIR}/{name}.a {' '.join(objs)} ")
 
-    link_to_lib(objs)
+def compile_tcc():
+    print("\n-- COMPILING TCC")
 
-    link_to_exec(compile_file("entry.c", "."), [compile_file("tcc.c")])
+    objs = [compile_file(src, pic = True) for src in TCC_SRC]
+    link_to_lib(objs, "libtcc")
 
-    print("=== Done ===")
+    objs = [compile_file(src, pic = False) for src in TCC_SRC]
+    archive_objs(objs, "libtcc")
+
+    objs.append(compile_file("tcc.c"))
+    entry = compile_file("entry.c", ".")
+    link_to_exec(entry, objs, "tcc")
+
+def compile_libtcc1():
+    print("\n-- COMPILING LIBTCC1")
+
+    objs = [compile_file(src, dir = LIB1DIR, pic = False) for src in LIBTCC1_SRC]
+    archive_objs(objs, "libtcc1")    
+
+def compile_extra():
+    print("\n-- COMPILING EXTRA FILES")
+
+    [compile_file(src, dir = LIB1DIR, out = OUTDIR, pic = False) for src in EXTRA_SRC]
 
 if __name__ == "__main__":
-    main()
+    execute_command(f"mkdir -p {OBJDIR} {OUTDIR}")
+    compile_tcc()
+    compile_libtcc1()
+    compile_extra()
+    execute_command(f"rm -rf {OBJDIR}")
+    print("\nSuccess! use `sh install.sh` to install in profanOS\n")

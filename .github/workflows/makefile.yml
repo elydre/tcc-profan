@@ -38,7 +38,4 @@ jobs:
         repo_token: "${{ secrets.GIT_TOKEN }}"
         prerelease: false
         files: |
-          tcc.elf
-          libtcc.a
-          libtcc.so
-          libtcc1.a
+          build/*

@@ -19,7 +19,7 @@
 #ifndef _ELF_H
 #define	_ELF_H 1
 
-#ifndef PROFAN
+#ifndef __profanOS__
 #ifndef _WIN32
 #include <inttypes.h>
 #else

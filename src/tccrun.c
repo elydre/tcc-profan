@@ -75,7 +75,7 @@ static void rt_exit(rt_frame *f, int code);
 /* defined when included from lib/bt-exe.c */
 #ifndef CONFIG_TCC_BACKTRACE_ONLY
 
-#if !(defined _WIN32 || defined PROFAN)
+#if !(defined _WIN32 || defined __profanOS__)
 # include <sys/mman.h>
 #endif
 
@@ -221,7 +221,7 @@ LIBTCCAPI int tcc_run(TCCState *s1, int argc, char **argv)
     if (s1->nostdlib) {
         s1->run_main = top_sym = "_start";
     } else {
-#ifdef PROFAN
+#ifdef __profanOS__
         s1->run_main = top_sym = "main";
 #else
         tcc_add_support(s1, "runmain.o");
@@ -439,7 +439,7 @@ redo:
 
 static int protect_pages(void *ptr, unsigned long length, int mode)
 {
-#ifdef PROFAN
+#ifdef __profanOS__
     return 0;
 #else
 #ifdef _WIN32
@@ -1224,7 +1224,7 @@ static int rt_error(rt_frame *f, const char *fmt, ...)
 
 /* ------------------------------------------------------------- */
 
-#ifndef PROFAN
+#ifndef __profanOS__
 #ifndef _WIN32
 # include <signal.h>
 # ifndef __OpenBSD__
@@ -1438,7 +1438,7 @@ static long __stdcall cpu_exception_handler(EXCEPTION_POINTERS *ex_info)
 /* Generate a stack backtrace when a CPU exception occurs. */
 static void set_exception_handler(void)
 {
-#ifndef PROFAN
+#ifndef __profanOS__
     SetUnhandledExceptionFilter(cpu_exception_handler);
 #endif
 }
@@ -1543,7 +1543,7 @@ static int rt_get_caller_pc(addr_t *paddr, rt_frame *f, int level)
 /* ------------------------------------------------------------- */
 #ifdef CONFIG_TCC_STATIC
 
-#ifndef PROFAN
+#ifndef __profanOS__
 /* dummy function for profiling */
 ST_FUNC void *dlopen(const char *filename, int flag)
 {

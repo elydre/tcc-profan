@@ -21,13 +21,11 @@
 #ifndef _TCC_H
 #define _TCC_H
 
-#ifndef PROFAN
-#define PROFAN
+#ifndef ONE_SOURCE
+#define ONE_SOURCE 0
 #endif
 
 #define TCC_IS_NATIVE
-#define TARGETOS_PROFAN
-#define ONE_SOURCE 0
 #define CONFIG_TCC_SEMLOCK 0
 
 #define _GNU_SOURCE
