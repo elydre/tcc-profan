@@ -42,8 +42,6 @@
 
 #include "../src/config.h"
 
-#include "config.h"
-
 #define BOUND_DEBUG             (1)
 #define BOUND_STATISTIC         (1)
 
