@@ -3562,6 +3562,8 @@ static const char * const target_os_defs =
     "__NetBSD__\0"
 # elif TARGETOS_OpenBSD
     "__OpenBSD__\0"
+# elif __profanOS__
+    "__profanOS__\0"
 # else
     "__linux__\0"
     "__linux\0"

@@ -1496,7 +1496,6 @@ static int rt_get_caller_pc(addr_t *paddr, rt_frame *f, int level)
 /* ------------------------------------------------------------- */
 #ifdef CONFIG_TCC_STATIC
 
-#ifndef __profanOS__
 /* dummy function for profiling */
 ST_FUNC void *dlopen(const char *filename, int flag)
 {
@@ -1542,7 +1541,6 @@ ST_FUNC void *dlsym(void *handle, const char *symbol)
     }
     return NULL;
 }
-#endif
 
 #endif /* CONFIG_TCC_STATIC */
 #endif /* TCC_IS_NATIVE */
