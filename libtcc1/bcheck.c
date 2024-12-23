@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <setjmp.h>
+#include <dlfcn.h>
 
 #if !defined(__FreeBSD__) \
  && !defined(__FreeBSD_kernel__) \
@@ -68,12 +69,8 @@
  || defined(__DragonFly__) \
  || defined(__OpenBSD__) \
  || defined(__NetBSD__) \
- || defined(__profanOS__) \
  || defined(__dietlibc__)
 
-#ifndef __profanOS__
-#include <sys/mman.h>
-#endif
 #define INIT_SEM()
 #define EXIT_SEM()
 #define WAIT_SEM()
@@ -84,6 +81,27 @@
 #define HAVE_PTHREAD_CREATE    (0)
 #define HAVE_CTYPE             (0)
 #define HAVE_ERRNO             (0)
+#define HAVE_SIGNAL            (0)
+#define HAVE_SIGACTION         (0)
+#define HAVE_FORK              (0)
+#define HAVE_TLS_FUNC          (0)
+#define HAVE_TLS_VAR           (0)
+
+#elif defined(__profanOS__)
+
+#include <dlfcn.h>
+#include <errno.h>
+
+#define INIT_SEM()
+#define EXIT_SEM()
+#define WAIT_SEM()
+#define POST_SEM()
+#define TRY_SEM()
+#define HAVE_MEMALIGN          (1)
+#define MALLOC_REDIR           (1)
+#define HAVE_PTHREAD_CREATE    (0)
+#define HAVE_CTYPE             (0)
+#define HAVE_ERRNO             (1)
 #define HAVE_SIGNAL            (0)
 #define HAVE_SIGACTION         (0)
 #define HAVE_FORK              (0)
@@ -986,7 +1004,11 @@ void __bound_init(size_t *p, int mode)
 
 #if MALLOC_REDIR
     {
+#ifdef __profanOS__
+        void *addr = RTLD_DEFAULT;
+#else
         void *addr = mode > 0 ? RTLD_DEFAULT : RTLD_NEXT;
+#endif
 
         /* tcc -run required RTLD_DEFAULT. Normal usage requires RTLD_NEXT,
            but using RTLD_NEXT with -run segfaults on MacOS in dyld as the
