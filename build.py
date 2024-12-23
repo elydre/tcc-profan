@@ -24,7 +24,7 @@ LIB1DIR = "libtcc1"
 TCC_SRC     = [e for e in os.listdir(SRCDIR) if e.endswith(".c") and e != "tcc.c"]
 
 LIBTCC1_SRC = ["libtcc1.c", "alloca.S", "alloca-bt.S", "stdatomic.c", "atomic.S", "builtin.c", "tcov.c", "va_list.c", "dsohandle.c"]
-EXTRA_SRC   = ["runmain.c", "bt-exe.c", "bt-log.c", "bcheck.c"]
+EXTRA_SRC   = ["runmain.c", "bt-exe.c", "bt-log.c"]
 
 def execute_command(cmd):
     rcode = os.system(cmd)
@@ -33,22 +33,22 @@ def execute_command(cmd):
     exit(rcode if rcode < 256 else 1)
 
 def compile_file(src, dir = SRCDIR, out = OBJDIR, pic = False):
-    print(f"CC {'pic ' if pic else 4*' '}{src}")
+    print(f"GCC {'pic ' if pic else 4*' '}{src}")
     obj = os.path.join(out, f"{os.path.splitext(src)[0]}.o")
     cmd = f"{CC} -c {os.path.join(dir, src)} -o {obj} {CC_FLAGS}{f' -fPIC' if pic else ''}"
     execute_command(cmd)
     return obj
 
 def link_to_exec(entry, objs, name):
-    print(f"LD === {name}.elf")
+    print(f"LD ==== {name}.elf")
     execute_command(f"{LD} {LD_FLAGS} -o {OUTDIR}/{name}.elf {entry} {' '.join(objs)}")
 
 def link_to_lib(objs, name):
-    print(f"LD === {name}.so")
+    print(f"LD ==== {name}.so")
     execute_command(f"{LD} {SO_FLAGS} -o {OUTDIR}/{name}.so {' '.join(objs)} -lc -lm")
 
 def archive_objs(objs, name):
-    print(f"AR === {name}.a")
+    print(f"AR ==== {name}.a")
     execute_command(f"{AR} rcs {OUTDIR}/{name}.a {' '.join(objs)} ")
 
 def compile_tcc():
@@ -65,15 +65,23 @@ def compile_tcc():
     link_to_exec(entry, objs, "tcc")
 
 def compile_libtcc1():
-    print("\n-- COMPILING LIBTCC1")
+    print("\n--- COMPILING LIBTCC1")
 
     objs = [compile_file(src, dir = LIB1DIR, pic = False) for src in LIBTCC1_SRC]
     archive_objs(objs, "libtcc1")    
 
 def compile_extra():
-    print("\n-- COMPILING EXTRA FILES")
+    print("\n--- COMPILING EXTRA FILES")
 
     [compile_file(src, dir = LIB1DIR, out = OUTDIR, pic = False) for src in EXTRA_SRC]
+
+    print("\n--- COMPILING BCHECK")
+
+    print("GCC     tcc.c")
+    execute_command(f"gcc -m32 src/tcc.c -o {OUTDIR}/tcc-i386")
+
+    print("TCC -bt bcheck.c")
+    execute_command(f"./{OUTDIR}/tcc-i386 -I {profan_path}/include/zlibs  -D__profanOS__ -nostdinc -B build -bt -c {LIB1DIR}/bcheck.c -o {OUTDIR}/bcheck.o")
 
 if __name__ == "__main__":
     execute_command(f"rm -rf {OBJDIR} {OUTDIR}")

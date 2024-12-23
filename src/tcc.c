@@ -28,7 +28,11 @@
 #endif
 #include "tcctools.c.h"
 
+#ifdef __profanOS__
 #include <profan/syscall.h> // c_timer_get_ms
+#else
+#include <sys/time.h> // gettimeofday
+#endif
 
 static const char help[] =
     "Tiny C Compiler "TCC_VERSION" - Copyright (C) 2001-2006 Fabrice Bellard\n"

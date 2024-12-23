@@ -223,13 +223,10 @@ LIBTCCAPI int tcc_run(TCCState *s1, int argc, char **argv)
     if (s1->nostdlib) {
         s1->run_main = top_sym = "_start";
     } else {
-#ifdef __profanOS__
         s1->run_main = top_sym = "main";
-#else
         tcc_add_support(s1, "runmain.o");
         s1->run_main = "_runmain";
         top_sym = "main";
-#endif
     }
     if (tcc_relocate(s1) < 0)
         return -1;
@@ -1385,16 +1382,21 @@ static long __stdcall cpu_exception_handler(EXCEPTION_POINTERS *ex_info)
     rt_exit(&f, 255);
     return EXCEPTION_EXECUTE_HANDLER;
 }
-#endif
-#endif
 
 /* Generate a stack backtrace when a CPU exception occurs. */
 static void set_exception_handler(void)
 {
-    #ifndef __profanOS__
     SetUnhandledExceptionFilter(cpu_exception_handler);
-    #endif
 }
+
+#endif /* WIN32 */
+#else /* __profanOS__ */
+
+static void set_exception_handler(void)
+{
+}
+
+#endif /* __profanOS__ */
 
 /* ------------------------------------------------------------- */
 /* return the PC at frame level 'level'. Return negative if not found */
