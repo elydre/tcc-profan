@@ -1,21 +1,11 @@
 Tiny C Compiler - C Scripting Everywhere - The Smallest ANSI C compiler
 -----------------------------------------------------------------------
 
-### build tcc.elf (for profanOS)
-```
-python3 build.py
-```
+### compile tcc for profanOS
 
-### build libtcc.a (for profanOS)
 ```
-sh makelib.sh
-```
-
-### copy tcc.elf and libtcc.a to profanOS
-```
-cp tcc.elf (profanOS)/out/zapps/fatpath/
-cp libtcc.so (profanOS)/out/zlibs/
-cp libtcc1.a (profanOS)/out/sys/
+python3 build.py [profan path]
+sh install.sh
 ```
 
 Features:
