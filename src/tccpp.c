@@ -3626,10 +3626,10 @@ static void tcc_predefs(TCCState *s1, CString *cs, int is_asm)
       cstr_printf(cs, "#define __STDC_VERSION__ %dL\n", s1->cversion);
       cstr_cat(cs,
         /* load more predefs and __builtins */
-#if CONFIG_TCC_PREDEFS
-        #include "tccdefs.h" /* include as strings */
-#else
+#ifdef __profanOS__
         "#include <tccdefs.h>\n" /* load at runtime */
+#else
+        "#include \"include/tccdefs.h\"\n"
 #endif
         , -1);
     }

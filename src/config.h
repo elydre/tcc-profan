@@ -1,10 +1,6 @@
-#ifndef CONFIG_TCCDIR
-# define CONFIG_TCCDIR "/lib/tcc"
-#endif
+#define CONFIG_TCCDIR "/lib/tcc"
 
-#ifndef CONFIG_TCC_PREDEFS
-# define CONFIG_TCC_PREDEFS 1
-#endif
+#define CONFIG_TCC_PREDEFS 0
 
 #define TCC_VERSION "0.9.28rc"
 
