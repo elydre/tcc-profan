@@ -76,13 +76,14 @@ def compile_extra():
     [compile_file(src, dir = LIB1DIR, out = OUTDIR) for src in EXTRA_SRC]
     execute_command(f"objcopy --remove-section=.note.GNU-stack --remove-section=.comment {OUTDIR}/tccmem.o")
 
-    print("\n--- COMPILING BCHECK")
-
     print("GCC     tcc.c")
     execute_command(f"gcc -m32 src/tcc.c -o {OBJDIR}/tcc-i386")
 
     print("TCC -bt bcheck.c")
     execute_command(f"./{OBJDIR}/tcc-i386 -I {profan_path}/include/zlibs -D__profanOS__ -nostdlib -B build -bt -c {LIB1DIR}/bcheck.c -o {OUTDIR}/bcheck.o")
+
+    print("TAR === tccobjs.tar.gz")
+    execute_command(f"cd {OUTDIR} && tar -czf tccobjs.tar.gz *.o")
 
 if __name__ == "__main__":
     execute_command(f"rm -rf {OBJDIR} {OUTDIR}")
