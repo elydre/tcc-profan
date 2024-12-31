@@ -11,7 +11,7 @@ CC      = "gcc"
 LD      = "ld"
 AR      = "ar"
 
-CC_FLAGS = f"-ffreestanding -fno-exceptions -m32 -nostdinc -O2 -fno-stack-protector -fno-omit-frame-pointer -I {profan_path}/include/zlibs -I {profan_path}/include/addons -D__profanOS__ -DONE_SOURCE=0"
+CC_FLAGS = f"-m32 -O2 -fno-omit-frame-pointer -fno-asynchronous-unwind-tables -ffreestanding -fno-exceptions -nostdinc -fno-stack-protector -I {profan_path}/include/zlibs -I {profan_path}/include/addons -D__profanOS__ -DONE_SOURCE=0"
 SO_FLAGS = f"-m elf_i386 -L {profan_path}/out/zlibs -nostdlib -shared"
 LD_FLAGS = f"-nostdlib -L {profan_path}/out/zlibs -T link.ld -lc -lm"
 
@@ -24,7 +24,7 @@ LIB1DIR = "libtcc1"
 TCC_SRC     = [e for e in os.listdir(SRCDIR) if e.endswith(".c") and e != "tcc.c"]
 
 LIBTCC1_SRC = ["libtcc1.c", "alloca.S", "alloca-bt.S", "stdatomic.c", "atomic.S", "builtin.c", "tcov.c", "va_list.c", "dsohandle.c"]
-EXTRA_SRC   = ["runmain.c", "bt-exe.c", "bt-log.c"]
+EXTRA_SRC   = ["runmain.c", "bt-exe.c", "bt-log.c", "tccmem.c"]
 
 def execute_command(cmd):
     rcode = os.system(cmd)
@@ -57,7 +57,7 @@ def compile_tcc():
     objs = [compile_file(src, pic = True) for src in TCC_SRC]
     link_to_lib(objs, "libtcc")
 
-    objs = [compile_file(src, pic = False) for src in TCC_SRC]
+    objs = [compile_file(src) for src in TCC_SRC]
     archive_objs(objs, "libtcc")
 
     objs.append(compile_file("tcc.c"))
@@ -67,13 +67,14 @@ def compile_tcc():
 def compile_libtcc1():
     print("\n--- COMPILING LIBTCC1")
 
-    objs = [compile_file(src, dir = LIB1DIR, pic = False) for src in LIBTCC1_SRC]
+    objs = [compile_file(src, dir = LIB1DIR) for src in LIBTCC1_SRC]
     archive_objs(objs, "libtcc1")    
 
 def compile_extra():
     print("\n--- COMPILING EXTRA FILES")
 
-    [compile_file(src, dir = LIB1DIR, out = OUTDIR, pic = False) for src in EXTRA_SRC]
+    [compile_file(src, dir = LIB1DIR, out = OUTDIR) for src in EXTRA_SRC]
+    execute_command(f"objcopy --remove-section=.note.GNU-stack --remove-section=.comment {OUTDIR}/tccmem.o")
 
     print("\n--- COMPILING BCHECK")
 
