@@ -45,9 +45,13 @@
 # ifndef CONFIG_TCC_STATIC
 #  include <dlfcn.h>
 # endif
+# ifdef __profanOS__
+#  define strtold (long double)strtod
+# else
 /* XXX: need to define this to use them in non ISOC99 context */
 extern float strtof (const char *__nptr, char **__endptr);
 extern long double strtold (const char *__nptr, char **__endptr);
+# endif
 #endif
 
 #ifdef _WIN32
