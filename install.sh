@@ -6,14 +6,14 @@ fi
 
 build="build"
 
-mkdir -p $profan/out/zapps/fatpath/
+mkdir -p $profan/out/zapps/h/
 mkdir -p $profan/include/addons/
 mkdir -p $profan/out/zlibs/tcc/
 mkdir -p $profan/out/zlibs/
 
 cp -v include/tccdefs.h $profan/include/addons/
 
-cp -v $build/tcc.elf $profan/out/zapps/fatpath/
+cp -v $build/tcc.elf $profan/out/zapps/h/
 cp -v $build/libtcc.so $profan/out/zlibs/
 cp -v $build/libtcc.a  $profan/out/zlibs/
 
